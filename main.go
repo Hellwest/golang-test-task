@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -20,28 +22,30 @@ func (a API) GetLimits() (uint64, time.Duration) {
 }
 
 func (a API) Process(ctx context.Context, batch Batch) error {
-	time.Sleep(time.Duration(1) * time.Second)
+	time.Sleep(time.Duration(5) * time.Second)
 
 	return nil
 }
 
-func (a *API) sendRequest(item Item) error {
+func (a *API) sendRequest(item Item, wg *sync.WaitGroup) error {
+	fmt.Println("Here")
 	err := a.Process(context.TODO(), Batch{})
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	wg.Done()
+	return err
 }
 
 func main() {
 	var i uint64
+	var wg sync.WaitGroup
 
 	for i = 1; i <= n+5; i++ {
 		log.Println("Iteration", i)
 		item := Item{}
 
-		go api.sendRequest(item)
+		wg.Add(1)
+		go api.sendRequest(item, &wg)
 	}
+
+	wg.Wait()
 }
